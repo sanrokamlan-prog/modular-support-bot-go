@@ -1,0 +1,8 @@
+.env
+data/
+*.db
+*.db-shm
+*.db-wal
+support-bot.exe
+support-bot
+
