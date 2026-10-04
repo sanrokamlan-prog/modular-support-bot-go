@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -78,6 +79,10 @@ CREATE TABLE IF NOT EXISTS tickets (
     closed_at INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS tickets_user_status ON tickets(user_id, status);
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS ticket_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ticket_id INTEGER NOT NULL,
@@ -93,6 +98,24 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
 		return fmt.Errorf("migrate user bans: %w", err)
 	}
 	return nil
+}
+
+func (s *Store) GetStaffChatID() (int64, error) {
+	var value string
+	err := s.db.QueryRow(`SELECT value FROM settings WHERE key='staff_chat_id'`).Scan(&value)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, err
+	}
+	return strconv.ParseInt(value, 10, 64)
+}
+
+func (s *Store) SetStaffChatID(chatID int64) error {
+	_, err := s.db.Exec(`INSERT INTO settings(key, value) VALUES('staff_chat_id', ?)
+ON CONFLICT(key) DO UPDATE SET value=excluded.value`, strconv.FormatInt(chatID, 10))
+	return err
 }
 
 func (s *Store) GetVerification(userID int64) (Verification, error) {

@@ -19,17 +19,18 @@
    - 删除消息（可选）
 4. 关闭 BotFather 的 Group Privacy，否则机器人收不到客服 Topic 中的普通回复。
 5. 把客服人员的 Telegram ID 写入 `STAFF_IDS`。只有这些账号能把 Topic 消息转给用户。
+6. 让其中一名客服在这个超级群组里发送一条消息，Bot 会自动识别并保存客服群组 ID；`STAFF_CHAT_ID` 可以留空。
 
 ## VPS 部署
 
 ```bash
 cp .env.example .env
-# 编辑 .env，填 BOT_TOKEN、STAFF_CHAT_ID、STAFF_IDS
+# 编辑 .env，填 BOT_TOKEN、STAFF_IDS；STAFF_CHAT_ID 可以留空
 docker compose up -d --build
 docker compose logs -f support-bot
 ```
 
-`STAFF_CHAT_ID` 必须是超级群组 ID，通常形如 `-100...`。数据库保存在 `./data/support.db`，备份这个文件即可备份工单和验证状态。
+如果 `STAFF_CHAT_ID` 留空，Bot 会在授权客服第一次在超级群组发言时自动识别并保存群组 ID。数据库保存在 `./data/support.db`，备份这个文件即可备份工单、验证状态和客服群配置。
 
 ## VPS 推荐配置
 

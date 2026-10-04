@@ -71,10 +71,28 @@ type rawUpdate struct {
 }
 
 func (s *BotService) handleMessage(message *tgbotapi.Message) error {
+	if message == nil || message.Chat == nil {
+		return nil
+	}
 	if message.Chat.IsPrivate() {
 		return s.handleUserMessage(message)
 	}
-	if message.Chat.ID != s.cfg.StaffChatID || message.From == nil || !s.cfg.StaffIDs[message.From.ID] {
+	if message.From == nil || !s.cfg.StaffIDs[message.From.ID] {
+		return nil
+	}
+	if s.cfg.StaffChatID == 0 {
+		if !message.Chat.IsSuperGroup() {
+			return nil
+		}
+		if err := s.store.SetStaffChatID(message.Chat.ID); err != nil {
+			return err
+		}
+		s.SetStaffChatID(message.Chat.ID)
+		if _, err := s.bot.Send(tgbotapi.NewMessage(message.Chat.ID, "✅ 已识别为客服超级群组。请确认已开启 Topics，之后用户工单会自动创建独立话题。")); err != nil {
+			return err
+		}
+	}
+	if message.Chat.ID != s.cfg.StaffChatID {
 		return nil
 	}
 	return s.handleStaffMessage(message)

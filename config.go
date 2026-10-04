@@ -24,10 +24,7 @@ func loadConfig() (Config, error) {
 	if token == "" {
 		return Config{}, fmt.Errorf("BOT_TOKEN is required")
 	}
-	staffChatID, err := requiredInt64("STAFF_CHAT_ID")
-	if err != nil {
-		return Config{}, err
-	}
+	staffChatID := optionalInt64(os.Getenv("STAFF_CHAT_ID"))
 	cfg := Config{
 		BotToken:        token,
 		StaffChatID:     staffChatID,
@@ -55,6 +52,14 @@ func requiredInt64(name string) (int64, error) {
 		return 0, fmt.Errorf("%s must be an integer: %w", name, err)
 	}
 	return parsed, nil
+}
+
+func optionalInt64(value string) int64 {
+	parsed, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return parsed
 }
 
 func envOr(name, fallback string) string {
